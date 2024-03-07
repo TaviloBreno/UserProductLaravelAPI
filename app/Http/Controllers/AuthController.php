@@ -74,4 +74,17 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'User updated successfully'], 200);
     }
+
+    /**
+     * Delete the authenticated user's account.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteAccount(Request $request)
+    {
+        $request->user()->delete();
+
+        return response()->json(['message' => 'Account deleted successfully'], 200);
+    }
 }
