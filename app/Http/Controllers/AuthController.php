@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -17,29 +19,27 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Verifica se o usuário está autenticado
+        if (!$request->user()) {
+            throw ValidationException::withMessages(['message' => 'Unauthorized']);
+        }
+
+        // Valida os dados recebidos no request
+        $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
         ]);
-    
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
 
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
-
+        // Cria um novo usuário
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
         ]);
 
-        return response()->json(['message' => 'User created successfully'], 201);
+        // Retorna uma resposta de sucesso
+        return response()->json(['message' => 'User registered successfully'], 201);
     }
 
     /**
@@ -79,11 +79,11 @@ class AuthController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'sometimes|required|string|min:6',
         ]);
 
@@ -91,7 +91,7 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
+        $user = User::findOrFail($id);
         $user->name = $request->name;
         $user->email = $request->email;
         if ($request->has('password')) {
@@ -102,16 +102,18 @@ class AuthController extends Controller
         return response()->json(['message' => 'User updated successfully'], 200);
     }
 
+
     /**
      * Delete the authenticated user's account.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function deleteAccount(Request $request)
+    public function destroy($id)
     {
-        $request->user()->delete();
+        $user = User::findOrFail($id);
+        $user->delete();
 
-        return response()->json(['message' => 'Account deleted successfully'], 200);
+        return response()->json(['message' => 'User deleted successfully'], 200);
     }
 }

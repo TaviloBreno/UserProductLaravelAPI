@@ -20,8 +20,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('auth:sanctum');
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-Route::middleware('auth:sanctum')->put('/user', [AuthController::class, 'update']);
-Route::middleware('auth:sanctum')->delete('/delete-account', [AuthController::class, 'deleteAccount']);
+Route::middleware('auth:sanctum')->put('/user/{id}', [AuthController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/user/{id}', [AuthController::class, 'destroy']);
