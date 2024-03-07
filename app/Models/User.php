@@ -24,6 +24,13 @@ class User extends Authenticatable
         'username', // Novo campo adicionado
     ];
     
+    /**
+     * Define a relação um para muitos com o modelo Product.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
