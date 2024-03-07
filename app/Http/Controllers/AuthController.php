@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -16,6 +17,16 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
         $request->validate([
             'name' => 'required|string',
             'email' => 'required|email|unique:users,email',
@@ -70,7 +81,23 @@ class AuthController extends Controller
      */
     public function update(Request $request)
     {
-        $request->user()->update($request->all());
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'password' => 'sometimes|required|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        if ($request->has('password')) {
+            $user->password = bcrypt($request->password);
+        }
+        $user->save();
 
         return response()->json(['message' => 'User updated successfully'], 200);
     }
