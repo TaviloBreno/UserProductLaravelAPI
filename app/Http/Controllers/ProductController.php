@@ -18,6 +18,9 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::all();
+        foreach ($products as $product) {
+            $product->image_url = Storage::url($product->image_path);
+        }
         return response()->json($products, 200);
     }
 
@@ -38,12 +41,19 @@ class ProductController extends Controller
             'image_path' => $request->file('image')->store('public/products'), // Armazena o arquivo e associa o caminho ao produto
         ]);
 
+        // Constrói a URL da imagem a partir do caminho retornado pelo método store
+        $imageUrl = Storage::url($product->image_path);
+
+        // Adiciona a URL da imagem à resposta
+        $product->image_url = $imageUrl;
+
         return response()->json($product, 201);
     }
 
     public function show($id)
     {
         $product = Product::findOrFail($id);
+        $product->image_url = Storage::url($product->image_path);
         return response()->json($product, 200);
     }
 
@@ -73,13 +83,19 @@ class ProductController extends Controller
 
         $product->save();
 
+        // Constrói a URL da imagem a partir do caminho retornado pelo método store
+        $imageUrl = Storage::url($product->image_path);
+
+        // Adiciona a URL da imagem à resposta
+        $product->image_url = $imageUrl;
+
         return response()->json($product, 200);
     }
 
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        // Excluir a imagem associada ao produto, se existir
+        // Exclui a imagem associada ao produto
         if ($product->image_path) {
             Storage::delete($product->image_path);
         }
