@@ -9,7 +9,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'image_path']; // Adicione o novo campo 'image_path' aqui
 
     /**
      * Get the user that owns the product.
