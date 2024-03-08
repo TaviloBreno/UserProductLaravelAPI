@@ -19,26 +19,22 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // Verifica se o usuário está autenticado
         if (!$request->user()) {
             throw ValidationException::withMessages(['message' => 'Unauthorized']);
         }
 
-        // Valida os dados recebidos no request
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
         ]);
 
-        // Cria um novo usuário
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // Retorna uma resposta de sucesso
         return response()->json(['message' => 'User registered successfully'], 201);
     }
 

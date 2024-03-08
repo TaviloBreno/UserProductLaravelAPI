@@ -28,7 +28,7 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'image' => 'required|image|max:2048', // Adicione a validação para a imagem aqui
+            'image' => 'required|image|max:2048', 
         ]);
 
         if ($validator->fails()) {
@@ -38,13 +38,11 @@ class ProductController extends Controller
         $user = Auth::user(); // Obtém o usuário autenticado
         $product = $user->products()->create([
             'name' => $request->name,
-            'image_path' => $request->file('image')->store('public/products'), // Armazena o arquivo e associa o caminho ao produto
+            'image_path' => $request->file('image')->store('public/products'),
         ]);
 
-        // Constrói a URL da imagem a partir do caminho retornado pelo método store
         $imageUrl = Storage::url($product->image_path);
 
-        // Adiciona a URL da imagem à resposta
         $product->image_url = $imageUrl;
 
         return response()->json($product, 201);
@@ -61,7 +59,7 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'image' => 'nullable|image|max:2048', // Modifique para 'nullable' se a imagem for opcional na atualização
+            'image' => 'nullable|image|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -71,22 +69,18 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $product->name = $request->name;
 
-        // Verifica se há uma nova imagem enviada
         if ($request->hasFile('image')) {
-            // Exclui a imagem antiga se existir
             if ($product->image_path) {
                 Storage::delete($product->image_path);
             }
-            // Atualiza o caminho da imagem com a nova imagem enviada
+
             $product->image_path = $request->file('image')->store('public/products');
         }
 
         $product->save();
 
-        // Constrói a URL da imagem a partir do caminho retornado pelo método store
         $imageUrl = Storage::url($product->image_path);
 
-        // Adiciona a URL da imagem à resposta
         $product->image_url = $imageUrl;
 
         return response()->json($product, 200);
@@ -95,7 +89,7 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        // Exclui a imagem associada ao produto
+        
         if ($product->image_path) {
             Storage::delete($product->image_path);
         }
